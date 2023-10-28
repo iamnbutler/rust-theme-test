@@ -2,7 +2,6 @@
     "name": "My Theme",
     "author": "Me",
     "url": "",
-    "default": "My Theme Light",
     "variants": [
         {
             "title": "My Theme Light",

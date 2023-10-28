@@ -42,7 +42,6 @@ pub struct ThemeConfig<'a> {
     pub name: Cow<'a, str>,
     pub author: Option<Cow<'a, str>>,
     pub url: Option<Cow<'a, str>>,
-    pub default: Option<Cow<'a, str>>,
     pub variants: Vec<ThemeVariant<'a>>,
 }
 
@@ -63,12 +62,11 @@ macro_rules! system_colors {
 impl<'a> SystemTheme<'a> {
     fn new() -> Self {
         let config = ThemeConfig {
-            name: Cow::Borrowed("Default System Theme"),
-            author: Some(Cow::Borrowed("System")),
+            name: Cow::Borrowed("Zed"),
+            author: Some(Cow::Borrowed("Zed Industries")),
             url: None,
-            default: Some(Cow::Borrowed("System Default")),
             variants: vec![ThemeVariant {
-                title: Cow::Borrowed("System Default"),
+                title: Cow::Borrowed("Zed Light"),
                 appearance: Cow::Borrowed("light"),
                 colors: system_colors! {
                     fg => "#ffffff",
@@ -128,7 +126,6 @@ impl<'a> UserTheme<'a> {
 
 impl<'a> Theme for UserTheme<'a> {
     fn colors(&self, v: usize) -> Result<&ThemeColors> {
-        // Consider adding logic to find the variant specified by `self.config.default`.
         self.config.variants.get(v).map(|variant| &variant.colors).context("Index out of range")
     }
     fn player_colors(&self, v: usize) -> Result<[ThemeColor; 8]> {
@@ -165,15 +162,15 @@ impl<'a> From<SystemTheme<'a>> for UserTheme<'static> {
 fn main() -> Result<(), anyhow::Error> {
     let system_theme = SystemTheme::new();
     println!("System Theme:");
-    print_theme_colors(system_theme.colors(0)?)?; // 0 is the index of the default variant
+    print_theme_colors(system_theme.colors(0)?)?;
 
     let user_theme = UserTheme::from_file("theme/test_theme.json")?;
     println!("\nUser Theme:");
-    print_theme_colors(user_theme.colors(0)?)?; // 0 is the index of the first variant
+    print_theme_colors(user_theme.colors(0)?)?;
 
     let system_theme_as_user_theme: UserTheme = system_theme.into();
     println!("\nUser Theme from System Theme:");
-    print_theme_colors(system_theme_as_user_theme.colors(0)?)?; // 0 is the index of the default variant
+    print_theme_colors(system_theme_as_user_theme.colors(0)?)?;
 
     println!("\nWriting themes.");
     let system_theme2 = SystemTheme::new();
