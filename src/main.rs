@@ -52,6 +52,14 @@ impl<'a> Theme for UserTheme<'a> {
     }
 }
 
+impl<'a> From<SystemTheme<'a>> for UserTheme<'a> {
+    fn from(system_theme: SystemTheme<'a>) -> UserTheme<'a> {
+        UserTheme {
+            colors: system_theme.colors,
+        }
+    }
+}
+
 impl<'a> Theme for SystemTheme<'a> {
     fn colors(&self) -> &ThemeColors {
         &self.colors
@@ -67,9 +75,15 @@ fn main() -> anyhow::Result<()> {
     let user_theme = UserTheme::from_file("theme/test_theme.json")?;
     print_theme_colors(user_theme.colors());
 
+    let system_theme2 = SystemTheme::new();
+    let user_theme_from_system: UserTheme = system_theme2.into();
+    println!("\nUser Theme from System Theme:");
+    print_theme_colors(user_theme_from_system.colors());
+
     println!("\nWriting themes.");
     system_theme.to_file("theme/system_theme.json")?;
     user_theme.to_file("theme/user_theme.json")?;
+    user_theme_from_system.to_file("theme/user_theme_from_system.json")?;
 
     Ok(())
 }
