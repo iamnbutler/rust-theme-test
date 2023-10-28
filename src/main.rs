@@ -9,13 +9,35 @@ pub trait Theme {
         let writer = std::io::BufWriter::new(file);
         serde_json::to_writer_pretty(writer, self.colors()).map_err(|err| anyhow::anyhow!(err))
     }
+    fn player_colors(&self) -> [ThemeColor; 8] {
+        [
+            self.colors().player_1.clone(),
+            self.colors().player_2.clone(),
+            self.colors().player_3.clone(),
+            self.colors().player_4.clone(),
+            self.colors().player_5.clone(),
+            self.colors().player_6.clone(),
+            self.colors().player_7.clone(),
+            self.colors().player_8.clone(),
+        ]
+    }
 }
+
+type ThemeColor<'a> = Cow<'a, str>;
 
 #[derive(Serialize, Deserialize)]
 pub struct ThemeColors<'a> {
     pub fg: Cow<'a, str>,
     pub bg: Cow<'a, str>,
     pub border: Cow<'a, str>,
+    pub player_1: Cow<'a, str>,
+    pub player_2: Cow<'a, str>,
+    pub player_3: Cow<'a, str>,
+    pub player_4: Cow<'a, str>,
+    pub player_5: Cow<'a, str>,
+    pub player_6: Cow<'a, str>,
+    pub player_7: Cow<'a, str>,
+    pub player_8: Cow<'a, str>,
 }
 
 macro_rules! system_theme {
@@ -35,9 +57,17 @@ pub struct SystemTheme<'a> {
 impl<'a> SystemTheme<'a> {
     fn new() -> Self {
         let theme = system_theme! {
-            fg => "white",
-            bg => "blue",
-            border => "gray"
+            fg => "#ffffff",
+            bg => "#000000",
+            border => "#333333",
+            player_1 => "#ff0000",
+            player_2 => "#00ff00",
+            player_3 => "#0000ff",
+            player_4 => "#ffff00",
+            player_5 => "#ff00ff",
+            player_6 => "#00ffff",
+            player_7 => "#ffffff",
+            player_8 => "#000000"
         };
 
         theme

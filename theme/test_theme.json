@@ -1,5 +1,13 @@
 {
     "fg": "#000000",
     "bg": "#FFFFFF",
-    "border": "#00FF00"
+    "border": "#00FF00",
+    "player_1": "#FF0000",
+    "player_2": "#0000FF",
+    "player_3": "#00FF00",
+    "player_4": "#FFFF00",
+    "player_5": "#FF00FF",
+    "player_6": "#00FFFF",
+    "player_7": "#000000",
+    "player_8": "#FFFFFF"
 }
