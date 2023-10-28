@@ -1,1 +1,4 @@
 /target
+
+**/theme/system_theme.json
+**/theme/user_theme.json

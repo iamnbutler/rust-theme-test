@@ -3,6 +3,11 @@ use anyhow::{Result, Context};
 
 pub trait Theme {
     fn colors(&self) -> &ThemeColors;
+    fn to_file(&self, path: &str) -> Result<(), anyhow::Error> {
+        let file = std::fs::File::create(path)?;
+        let writer = std::io::BufWriter::new(file);
+        serde_json::to_writer_pretty(writer, &self.colors()).map_err(|err| anyhow::anyhow!(err))
+    }
 }
 
 #[derive(serde::Deserialize, serde::Serialize, Clone)]
@@ -61,6 +66,10 @@ fn main() -> anyhow::Result<()> {
     println!("\nUser Theme:");
     let user_theme = UserTheme::from_file("theme/test_theme.json")?;
     print_theme_colors(user_theme.colors());
+
+    println!("\nWriting themes.");
+    system_theme.to_file("theme/system_theme.json")?;
+    user_theme.to_file("theme/user_theme.json")?;
 
     Ok(())
 }

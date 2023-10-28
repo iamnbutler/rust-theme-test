@@ -1,5 +1,5 @@
 {
-    "fg": "black",
-    "bg": "yellow",
-    "border": "green"
+    "fg": "#000000",
+    "bg": "#FFFFFF",
+    "border": "#00FF00"
 }
