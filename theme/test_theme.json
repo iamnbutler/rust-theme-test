@@ -1,13 +1,42 @@
 {
-    "fg": "#000000",
-    "bg": "#FFFFFF",
-    "border": "#00FF00",
-    "player_1": "#FF0000",
-    "player_2": "#0000FF",
-    "player_3": "#00FF00",
-    "player_4": "#FFFF00",
-    "player_5": "#FF00FF",
-    "player_6": "#00FFFF",
-    "player_7": "#000000",
-    "player_8": "#FFFFFF"
+    "name": "My Theme",
+    "author": "Me",
+    "url": "",
+    "default": "My Theme Light",
+    "variants": [
+        {
+            "title": "My Theme Light",
+            "appearance": "light",
+            "colors": {
+                "fg": "#ffffff",
+                "bg": "#000000",
+                "border": "#333333",
+                "player_1": "#ff0000",
+                "player_2": "#00ff00",
+                "player_3": "#0000ff",
+                "player_4": "#ffff00",
+                "player_5": "#ff00ff",
+                "player_6": "#00ffff",
+                "player_7": "#ffffff",
+                "player_8": "#000000"
+            }
+        },
+        {
+            "title": "My Theme Dark",
+            "appearance": "dark",
+            "colors": {
+                "fg": "#000000",
+                "bg": "#ffffff",
+                "border": "#333333",
+                "player_1": "#ff0000",
+                "player_2": "#00ff00",
+                "player_3": "#0000ff",
+                "player_4": "#ffff00",
+                "player_5": "#ff00ff",
+                "player_6": "#00ffff",
+                "player_7": "#ffffff",
+                "player_8": "#000000"
+            }
+        }
+    ]
 }
