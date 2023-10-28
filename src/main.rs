@@ -5,12 +5,27 @@ use anyhow::{Result, Context};
 pub trait Theme {
     fn colors(&self, v: usize) -> Result<&ThemeColors>;
     fn player_colors(&self, v: usize) -> Result<[ThemeColor; 8]>;
+    fn set_color(&mut self, v: usize, color: String, color_type: ColorType) -> Result<()>;
     fn to_file(&self, path: &str) -> Result<(), anyhow::Error> {
         let file = std::fs::File::create(path)?;
         let writer = std::io::BufWriter::new(file);
         serde_json::to_writer_pretty(writer, &self.get_config()).map_err(From::from)
     }
     fn get_config(&self) -> &ThemeConfig;
+}
+
+pub enum ColorType {
+    Fg,
+    Bg,
+    Border,
+    Player1,
+    Player2,
+    Player3,
+    Player4,
+    Player5,
+    Player6,
+    Player7,
+    Player8,
 }
 
 type ThemeColor<'a> = Cow<'a, str>;
@@ -92,6 +107,29 @@ impl<'a> Theme for SystemTheme<'a> {
     fn colors(&self, v: usize) -> Result<&ThemeColors> {
         self.config.variants.get(v).map(|variant| &variant.colors).context("Index out of range")
     }
+
+    fn set_color(&mut self, v: usize, color: String, color_type: ColorType) -> Result<()> {
+        let variant = self.config.variants.get_mut(v)
+            .ok_or_else(|| anyhow::anyhow!("Variant index out of range"))?;
+        let color = Cow::Owned(color);
+
+        match color_type {
+            ColorType::Fg => variant.colors.fg = color,
+            ColorType::Bg => variant.colors.bg = color,
+            ColorType::Border => variant.colors.border = color,
+            ColorType::Player1 => variant.colors.player_1 = color,
+            ColorType::Player2 => variant.colors.player_2 = color,
+            ColorType::Player3 => variant.colors.player_3 = color,
+            ColorType::Player4 => variant.colors.player_4 = color,
+            ColorType::Player5 => variant.colors.player_5 = color,
+            ColorType::Player6 => variant.colors.player_6 = color,
+            ColorType::Player7 => variant.colors.player_7 = color,
+            ColorType::Player8 => variant.colors.player_8 = color,
+        }
+
+        Ok(())
+    }
+
     fn player_colors(&self, v: usize) -> Result<[ThemeColor; 8]> {
         let colors = self.colors(v)?;
         Ok([
@@ -128,6 +166,29 @@ impl<'a> Theme for UserTheme<'a> {
     fn colors(&self, v: usize) -> Result<&ThemeColors> {
         self.config.variants.get(v).map(|variant| &variant.colors).context("Index out of range")
     }
+
+    fn set_color(&mut self, v: usize, color: String, color_type: ColorType) -> Result<()> {
+        let variant = self.config.variants.get_mut(v)
+            .ok_or_else(|| anyhow::anyhow!("Variant index out of range"))?;
+        let color = Cow::Owned(color);
+
+        match color_type {
+            ColorType::Fg => variant.colors.fg = color,
+            ColorType::Bg => variant.colors.bg = color,
+            ColorType::Border => variant.colors.border = color,
+            ColorType::Player1 => variant.colors.player_1 = color,
+            ColorType::Player2 => variant.colors.player_2 = color,
+            ColorType::Player3 => variant.colors.player_3 = color,
+            ColorType::Player4 => variant.colors.player_4 = color,
+            ColorType::Player5 => variant.colors.player_5 = color,
+            ColorType::Player6 => variant.colors.player_6 = color,
+            ColorType::Player7 => variant.colors.player_7 = color,
+            ColorType::Player8 => variant.colors.player_8 = color,
+        }
+
+        Ok(())
+    }
+
     fn player_colors(&self, v: usize) -> Result<[ThemeColor; 8]> {
         let colors = self.colors(v)?;
         Ok([
@@ -168,15 +229,15 @@ fn main() -> Result<(), anyhow::Error> {
     println!("\nUser Theme:");
     print_theme_colors(user_theme.colors(0)?)?;
 
-    let system_theme_as_user_theme: UserTheme = system_theme.into();
+    let mut new_user_theme: UserTheme = SystemTheme::new().into();
+    new_user_theme.set_color(0, "#FE3F5D".to_string(), ColorType::Player1)?;
     println!("\nUser Theme from System Theme:");
-    print_theme_colors(system_theme_as_user_theme.colors(0)?)?;
+    print_theme_colors(new_user_theme.colors(0)?)?;
 
     println!("\nWriting themes.");
-    let system_theme2 = SystemTheme::new();
-    system_theme2.to_file("theme/system_theme.json")?;
+    system_theme.to_file("theme/system_theme.json")?;
     user_theme.to_file("theme/user_theme.json")?;
-    system_theme_as_user_theme.to_file("theme/user_theme_from_system_theme.json")?;
+    new_user_theme.to_file("theme/user_theme_from_system_theme.json")?;
 
     Ok(())
 }
