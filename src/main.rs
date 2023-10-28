@@ -1,20 +1,31 @@
 use std::borrow::Cow;
 use anyhow::{Result, Context};
+use serde::{Serialize, Deserialize};
 
 pub trait Theme {
-    fn colors(&self) -> &ThemeColors;
+    fn colors(&self) -> &ThemeColors<'_>;
     fn to_file(&self, path: &str) -> Result<(), anyhow::Error> {
         let file = std::fs::File::create(path)?;
         let writer = std::io::BufWriter::new(file);
-        serde_json::to_writer_pretty(writer, &self.colors()).map_err(|err| anyhow::anyhow!(err))
+        serde_json::to_writer_pretty(writer, self.colors()).map_err(|err| anyhow::anyhow!(err))
     }
 }
 
-#[derive(serde::Deserialize, serde::Serialize, Clone)]
+#[derive(Serialize, Deserialize)]
 pub struct ThemeColors<'a> {
     pub fg: Cow<'a, str>,
     pub bg: Cow<'a, str>,
     pub border: Cow<'a, str>,
+}
+
+macro_rules! system_theme {
+    ($($color:ident => $value:expr),*) => {
+        {
+            SystemTheme { colors: ThemeColors {
+                $($color: Cow::Borrowed($value)),*
+            } }
+        }
+    };
 }
 
 pub struct SystemTheme<'a> {
@@ -23,13 +34,13 @@ pub struct SystemTheme<'a> {
 
 impl<'a> SystemTheme<'a> {
     fn new() -> Self {
-        SystemTheme {
-            colors: ThemeColors {
-                fg: Cow::Borrowed("white"),
-                bg: Cow::Borrowed("blue"),
-                border: Cow::Borrowed("gray"),
-            },
-        }
+        let theme = system_theme! {
+            fg => "white",
+            bg => "blue",
+            border => "gray"
+        };
+
+        theme
     }
 }
 
@@ -89,5 +100,10 @@ fn main() -> anyhow::Result<()> {
 }
 
 fn print_theme_colors(colors: &ThemeColors) {
-    println!("fg: {}, bg: {}, border: {}", colors.fg, colors.bg, colors.border);
+    println!(
+        "fg: {}, bg: {}, border: {}",
+        colors.fg,
+        colors.bg,
+        colors.border
+    );
 }
