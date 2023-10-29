@@ -2,6 +2,8 @@ use std::borrow::Cow;
 use serde::{Serialize, Deserialize};
 use anyhow::{Result, Context};
 
+mod color;
+
 pub trait Theme {
     fn colors(&self, v: usize) -> Result<&ThemeColors>;
     fn player_colors(&self, v: usize) -> Result<[ThemeColor; 8]>;
