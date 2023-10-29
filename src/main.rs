@@ -20,18 +20,6 @@ impl Hsla {
     }
 }
 
-// pub trait Theme {
-//     fn colors(&self, v: usize) -> Result<&ThemeColors>;
-//     fn player_colors(&self, v: usize) -> Result<[ThemeColor; 8]>;
-//     fn set_color(&mut self, v: usize, color: Hsla, color_type: ColorType) -> Result<()>;
-//     fn to_file(&self, path: &str) -> Result<(), anyhow::Error> {
-//         let file = std::fs::File::create(path)?;
-//         let writer = std::io::BufWriter::new(file);
-//         serde_json::to_writer_pretty(writer, &self.get_config()).map_err(From::from)
-//     }
-//     fn get_config(&self) -> &ThemeConfig;
-// }
-
 // ---------------------
 // Color Type
 // ---------------------
@@ -166,7 +154,233 @@ mod theme_color_tests {
     }
 }
 
-// type ThemeColor<'a> = Cow<'a, color::Hsla>;
+// ---------------------
+// Theme
+// ---------------------
+
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub enum Appearance {
+    Light,
+    Dark,
+}
+
+impl Appearance {
+    pub fn name(&self) -> String {
+        match self {
+            Appearance::Light => "Light".into(),
+            Appearance::Dark => "Dark".into(),
+        }
+    }
+}
+
+pub struct Theme<'a> {
+    name: String,
+    appearance: Appearance,
+    colors: Vec<ThemeColor<'a>>,
+}
+
+impl<'a> Theme<'a> {
+    pub fn new(name: String, appearance: Appearance, colors: Vec<ThemeColor<'a>>) -> Self {
+        Self {
+            name,
+            appearance,
+            colors,
+        }
+    }
+}
+
+#[cfg(test)]
+mod theme_tests {
+    use super::*;
+
+    #[test]
+    fn test_theme_creation() {
+        let theme = Theme::new(
+            "Test Theme".to_string(),
+            Appearance::Dark,
+            Vec::new()
+        );
+        assert_eq!(theme.name, "Test Theme");
+        assert_eq!(theme.appearance, Appearance::Dark);
+        assert!(theme.colors.is_empty());
+    }
+
+    #[test]
+    fn test_adding_theme_colors() {
+        let theme = Theme::new(
+            "Test Theme".to_string(),
+            Appearance::Dark,
+            vec![
+                ThemeColor::new(ColorType::Fg, color::red(), None),
+                ThemeColor::new(ColorType::Bg, color::white(), None),
+                ThemeColor::new(ColorType::Border, color::black(), None)
+            ]
+        );
+
+        assert_eq!(theme.colors.len(), 3);
+        assert_eq!(theme.colors[2].color_type(), ColorType::Border);
+    }
+}
+
+// ---------------------
+// ThemeFamily
+// ---------------------
+
+pub struct ThemeFamily<'a> {
+    name: String,
+    author: String,
+    variants: Vec<Theme<'a>>,
+}
+
+impl<'a> ThemeFamily<'a> {
+    pub fn new(name: String, author: String,) -> Self {
+        Self {
+            name,
+            author,
+            variants: Vec::new(),
+        }
+    }
+
+    pub fn add_variant(&mut self, variant: Theme<'a>) {
+        self.variants.push(variant);
+    }
+}
+
+#[cfg(test)]
+mod theme_family_tests {
+    use super::*;
+
+    #[test]
+    fn test_theme_family_creation() {
+        let theme_family = ThemeFamily::new("Test Family".to_string(), "Test Author".to_string());
+        assert_eq!(theme_family.name, "Test Family");
+        assert_eq!(theme_family.author, "Test Author");
+        assert!(theme_family.variants.is_empty());
+    }
+
+    #[test]
+    fn test_theme_family_variant_addition() {
+        let mut theme_family = ThemeFamily::new("Test Family".to_string(), "Test Author".to_string());
+        let theme = Theme::new("Test Theme".to_string(), Appearance::Dark, Vec::new());
+        theme_family.add_variant(theme);
+        assert_eq!(theme_family.variants.len(), 1);
+    }
+}
+
+// ---------------------
+// ThemeRegistry
+// ---------------------
+
+pub struct ThemeRegistry<'a> {
+    families: Vec<ThemeFamily<'a>>,
+}
+
+impl<'a> ThemeRegistry<'a> {
+    pub fn new() -> Self {
+        Self {
+            families: Vec::new(),
+        }
+    }
+
+    pub fn add_family(&mut self, family: ThemeFamily<'a>) {
+        self.families.push(family);
+    }
+
+    pub fn all_themes(&self) -> Vec<&Theme> {
+        let mut themes = Vec::new();
+
+        for family in &self.families {
+            for variant in &family.variants {
+                themes.push(variant);
+            }
+        }
+
+        themes.sort_by(|a, b| a.name.cmp(&b.name));
+
+        themes
+    }
+
+    pub fn all_dark(&self) -> Vec<&Theme> {
+        let mut themes = Vec::new();
+
+        for family in &self.families {
+            for variant in &family.variants {
+                if variant.appearance == Appearance::Dark {
+                    themes.push(variant);
+                }
+            }
+        }
+
+        themes.sort_by(|a, b| a.name.cmp(&b.name));
+
+        themes
+    }
+
+    pub fn all_light(&self) -> Vec<&Theme> {
+        let mut themes = Vec::new();
+
+        for family in &self.families {
+            for variant in &family.variants {
+                if variant.appearance == Appearance::Light {
+                    themes.push(variant);
+                }
+            }
+        }
+
+        themes.sort_by(|a, b| a.name.cmp(&b.name));
+
+        themes
+    }
+}
+
+#[cfg(test)]
+mod theme_registry_tests {
+    use super::*;
+
+    #[test]
+    fn test_theme_registry_creation() {
+        let theme_registry = ThemeRegistry::new();
+        assert!(theme_registry.families.is_empty());
+    }
+
+    #[test]
+    fn test_theme_registry_family_addition() {
+        let mut theme_registry = ThemeRegistry::new();
+        let theme_family = ThemeFamily::new("Test Family".to_string(), "Test Author".to_string());
+        theme_registry.add_family(theme_family);
+        assert_eq!(theme_registry.families.len(), 1);
+    }
+
+    #[test]
+    fn test_theme_registry_all_themes() {
+        let mut theme_registry = ThemeRegistry::new();
+        let mut theme_family = ThemeFamily::new("Test Family".to_string(), "Test Author".to_string());
+        let theme = Theme::new("Test Theme".to_string(), Appearance::Dark, Vec::new());
+        theme_family.add_variant(theme);
+        theme_registry.add_family(theme_family);
+        assert_eq!(theme_registry.all_themes().len(), 1);
+    }
+
+    #[test]
+    fn test_theme_registry_all_dark() {
+        let mut theme_registry = ThemeRegistry::new();
+        let mut theme_family = ThemeFamily::new("Test Family".to_string(), "Test Author".to_string());
+        let theme = Theme::new("Test Theme".to_string(), Appearance::Dark, Vec::new());
+        theme_family.add_variant(theme);
+        theme_registry.add_family(theme_family);
+        assert_eq!(theme_registry.all_dark().len(), 1);
+    }
+
+    #[test]
+    fn test_theme_registry_all_light() {
+        let mut theme_registry = ThemeRegistry::new();
+        let mut theme_family = ThemeFamily::new("Test Family".to_string(), "Test Author".to_string());
+        let theme = Theme::new("Test Theme".to_string(), Appearance::Light, Vec::new());
+        theme_family.add_variant(theme);
+        theme_registry.add_family(theme_family);
+        assert_eq!(theme_registry.all_light().len(), 1);
+    }
+}
 
 // macro_rules! generate_colors {
 //     ($($color:ident),*) => {
@@ -378,6 +592,18 @@ mod theme_color_tests {
 
 //         UserTheme { config }
 //     }
+// }
+
+// pub trait Theme {
+//     fn colors(&self, v: usize) -> Result<&ThemeColors>;
+//     fn player_colors(&self, v: usize) -> Result<[ThemeColor; 8]>;
+//     fn set_color(&mut self, v: usize, color: Hsla, color_type: ColorType) -> Result<()>;
+//     fn to_file(&self, path: &str) -> Result<(), anyhow::Error> {
+//         let file = std::fs::File::create(path)?;
+//         let writer = std::io::BufWriter::new(file);
+//         serde_json::to_writer_pretty(writer, &self.get_config()).map_err(From::from)
+//     }
+//     fn get_config(&self) -> &ThemeConfig;
 // }
 
 fn main() -> Result<(), anyhow::Error> {
