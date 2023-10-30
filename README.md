@@ -19,3 +19,7 @@ Output:
 - [ ] Print a Theme
 - [ ] Print a ThemeFamily and it's themes
 - [ ]
+
+ui-colors = {background = "red[0]", text = "#fff000", }
+ui-colors = {background = "#ffffff", text = "#fff000", }
+ui-colors = {background = "360, 100, 100, 1", text = "#fff000", }
