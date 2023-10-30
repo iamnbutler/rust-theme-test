@@ -12,4 +12,3 @@ anyhow = "1.0.75"
 palette = {version = "0.7.3", features = ["serializing"]}
 paste = "1.0"
 toml = "0.8.6"
-bounded_types = "0.2"

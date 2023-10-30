@@ -1,9 +1,9 @@
-use std::{collections::{HashMap, BTreeMap}, sync::Arc, str::FromStr};
+use std::{collections::{HashMap, BTreeMap}, sync::Arc, str::FromStr, path::{Path, PathBuf}};
 use crate::color::{Hsla, hsla};
 
 use paste::paste;
 
-use serde::{Deserialize};
+use serde::{Deserialize, Serialize};
 // ====================
 // Color Scales
 // ====================
@@ -81,7 +81,7 @@ struct Colors {
 /// - s: 0-100
 /// - l: 0-100
 /// - a: 0-100
-#[derive(PartialEq, Clone, Debug)]
+#[derive(PartialEq, Clone, Debug, Serialize)]
 struct StandardHsla([u16; 4]);
 
 impl<'a> serde::de::Deserialize<'a> for StandardHsla {
@@ -103,11 +103,12 @@ impl<'a> serde::de::Deserialize<'a> for StandardHsla {
         if a > 100 {
             return Err(serde::de::Error::custom("A is out of bounds"));
         }
-        Ok(StandardHsla([h, s, l, a]))
+
+        Ok(StandardHsla([h,s,l,a]))
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 #[serde(untagged)]
 enum ZedHsla {
     StandardHsla(StandardHsla),
@@ -118,7 +119,7 @@ enum ZedHsla {
 macro_rules! create_ui_color_overrides_impl {
     ($($field:ident: $t:ty),*) => {
 
-        paste! { #[derive(Clone, Debug, PartialEq, PartialOrd, Eq, Ord, Deserialize)]
+        paste! { #[derive(Clone, Debug, PartialEq, PartialOrd, Eq, Ord, Deserialize, Serialize)]
             #[serde(rename_all="snake_case")]
             enum UiColorName {
             $([<$field:camel>]),*
@@ -127,7 +128,7 @@ macro_rules! create_ui_color_overrides_impl {
         struct SystemColors {
             $($field: $t),*
         }
-        #[derive(Debug, Clone, PartialEq, Deserialize)]
+        #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
         struct ColorOverrides(BTreeMap<UiColorName, ZedHsla>);
     };
 }
@@ -143,7 +144,7 @@ create_ui_color_overrides!(background, border, text);
 // Theme
 // ====================
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
 enum Appearance {
     Light,
@@ -152,13 +153,27 @@ enum Appearance {
 
 type ThemeId = usize;
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct ThemeVariant {
+    #[serde(skip)]
     id: ThemeId,
     name: String,
     author: String,
     appearance: Appearance,
     overrides: ColorOverrides,
+}
+
+pub fn serialize_theme(t: ThemeVariant) -> Result<String, anyhow::Error> {
+    Ok(toml::to_string_pretty(&t)?)
+}
+fn write_theme_to(t: ThemeVariant, path: &Path) -> Result<(), anyhow::Error> {
+    let contents = serialize_theme(t)?;
+    _ = std::fs::write(path, contents);
+    Ok(())
+}
+
+pub fn write_theme(t: ThemeVariant) -> Result<(), anyhow::Error> {
+    write_theme_to(t, &PathBuf::from("theme"))
 }
 
 #[derive(Debug)]

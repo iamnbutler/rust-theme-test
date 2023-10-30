@@ -1,6 +1,7 @@
 // Borrowed from GPUI2
 #![allow(dead_code)]
 
+use serde::Serialize;
 use serde::de::{self, Deserialize, Deserializer, Visitor};
 use std::fmt;
 use std::num::ParseIntError;
@@ -262,5 +263,13 @@ impl<'de> Deserialize<'de> for Hsla {
 
         // Then, use the From<Rgba> for Hsla implementation to convert it
         Ok(Hsla::from(rgba))
+    }
+}
+
+impl Serialize for Hsla {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer {
+            <[u16; 4]>::serialize(&[self.h as _, self.s as _, self.l as _, self.a as _], serializer)
     }
 }
