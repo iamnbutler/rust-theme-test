@@ -4,6 +4,7 @@ use super::color_scale::ColorScale;
 ///
 /// Each set contains four color scales: `light`, `dark`, `light_alpha`, and `dark_alpha`.
 /// The `light` and `dark` scales are used for solid colors, while the `light_alpha` and `dark_alpha` scales are used for transparent colors.
+#[derive(Debug)]
 pub struct ColorScaleSet {
     pub name: String,
     pub light: ColorScale,
