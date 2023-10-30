@@ -3,6 +3,7 @@ use serde::{Serialize, Deserialize};
 use anyhow::{Result, Context};
 
 mod color;
+mod theme;
 
 pub trait Theme {
     fn colors(&self, v: usize) -> Result<&ThemeColors>;
@@ -75,6 +76,20 @@ macro_rules! system_colors {
         }
     };
 }
+
+// struct Theme {
+//     color: String,
+//     background: String
+// }
+
+// struct Override {
+//     color: Option<String>,
+//     background: Option<String>,
+// }
+
+// fn apply(base: Theme, override: Override) -> Theme {
+
+// }
 
 impl<'a> SystemTheme<'a> {
     fn new() -> Self {
