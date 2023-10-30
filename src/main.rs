@@ -1,16 +1,15 @@
 use std::collections::BTreeMap;
+use ui_color::UIColor;
+use crate::{color_scale::{ColorScale, hsla, ColorScaleSet}, theme::{Theme, ThemeFamily}};
 
-pub mod ui_color;
-pub mod scale;
-pub mod theme;
+mod ui_color;
+mod theme;
+mod color_scale;
 
-pub use ui_color::color::*;
-pub use ui_color::colors::*;
-pub use scale::color_scale::*;
-pub use scale::color_scale_set::*;
-pub use theme::*;
+
 
 use anyhow::Result;
+
 
 fn main() -> Result<(), anyhow::Error> {
     let mut ui_colors: BTreeMap<String, UIColor> = BTreeMap::new();
@@ -35,17 +34,21 @@ fn main() -> Result<(), anyhow::Error> {
     // Initialize UIColors
     ui_colors.insert("filled-element-background".to_string(), UIColor::new("filled-element-background", ColorScale::default(), "Used for the background of filled elements, like buttons and checkboxes."));
 
-    // Create a new theme
     let mut theme = Theme::new();
     theme.add_ui_colors(ui_colors);
-    theme.add_color_scale_set(test_color_scale_set);
+
+    // Create a new theme familt
+    let theme_family = ThemeFamily::new(
+        "Zed".into(),
+        "Zed Industries".into()
+    ).add_color_scale_set(test_color_scale_set).add_theme(theme.clone());
 
     // Access a UIColor
     let ui_color = theme.get_ui_color("filled-element-background").unwrap();
     println!("UIColor: {:?}", ui_color);
 
     // Access a ColorScaleSet
-    let color_scale_set = theme.get_color_scale_set("neutral").unwrap();
+    let color_scale_set = theme_family.get_color_scale_set("neutral").unwrap();
     println!("ColorScaleSet: {:?}", color_scale_set);
 
     Ok(())
