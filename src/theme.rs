@@ -3,7 +3,7 @@ use crate::color::{Hsla, hsla};
 
 use paste::paste;
 
-use serde::Deserialize;
+use serde::{Deserialize};
 // ====================
 // Color Scales
 // ====================
@@ -81,14 +81,36 @@ struct Colors {
 /// - s: 0-100
 /// - l: 0-100
 /// - a: 0-100
-#[derive(Clone, Debug, PartialEq, Deserialize, Eq)]
+#[derive(PartialEq, Clone, Debug)]
 struct StandardHsla([u16; 4]);
 
+impl<'a> serde::de::Deserialize<'a> for StandardHsla {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where
+            D: serde::de::Deserializer<'a>
+    {
+        let elements = <[u16; 4]>::deserialize(deserializer)?;
+        let [h, s, l, a] = elements;
+        if h > 360 {
+            return Err(serde::de::Error::custom("H is out of bounds"));
+        }
+        if s > 100 {
+            return Err(serde::de::Error::custom("S is out of bounds"));
+        }
+        if l > 100 {
+            return Err(serde::de::Error::custom("L is out of bounds"));
+        }
+        if a > 100 {
+            return Err(serde::de::Error::custom("A is out of bounds"));
+        }
+        Ok(StandardHsla([h, s, l, a]))
+    }
+}
 
-#[derive(Clone, Debug, PartialEq, Deserialize, Eq)]
+#[derive(Clone, Debug, PartialEq, Deserialize)]
 #[serde(untagged)]
 enum ZedHsla {
-    StandardHsla([u16; 4]),
+    StandardHsla(StandardHsla),
     Hsla(Hsla)
 }
 
@@ -105,7 +127,7 @@ macro_rules! create_ui_color_overrides_impl {
         struct SystemColors {
             $($field: $t),*
         }
-        #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+        #[derive(Debug, Clone, PartialEq, Deserialize)]
         struct ColorOverrides(BTreeMap<UiColorName, ZedHsla>);
     };
 }

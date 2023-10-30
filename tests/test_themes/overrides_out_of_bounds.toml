@@ -1,0 +1,7 @@
+id = 3
+name = "User Theme"
+author = "Someone"
+appearance = "dark"
+
+[overrides]
+background = [400, 8192, 0, 1]
